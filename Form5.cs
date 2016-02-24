@@ -20,7 +20,7 @@ namespace ZI1
             bool RUS = false, ENG = false, Zn = false;
             RUS = Regex.IsMatch(Edit1.Text, "[а-яА-ЯеЁ]");
             ENG = Regex.IsMatch(Edit1.Text, "[A-z]");          
-            Zn = Regex.IsMatch(Edit1.Text, "[-‘.’_,:;!?()”+$]");
+            Zn = Regex.IsMatch(Edit1.Text, "[-‘.’_,:;!?()”+$$]");
             return (RUS && ENG && Zn);
         }
 
