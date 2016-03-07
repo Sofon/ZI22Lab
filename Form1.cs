@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-
+using System.Security.Cryptography;
 
 namespace ZI1
 {
@@ -17,6 +17,22 @@ namespace ZI1
     {   
         // форма Вход в программу
         Form2 Enter;
+        RC2CryptoServiceProvider rc2CSP;
+        byte[] IV;
+        // объект класса для генерации секретного ключа из парольной фразы
+        PasswordDeriveBytes pdb;
+        // буфер для парольной фразы
+        byte[] pwd;
+        // буфер для случайной примеси к ключу шифрования
+        byte[] randBytes;
+        // буфер для парольной фразы и случайной примеси
+        byte[] buf;
+        // объект для потока шифрования-расшифрования
+        CryptoStream CrStream;
+        // буфер для ввода-вывода данных из файла учетных записей
+        byte[] bytes;
+        // длина буфера ввода-вывода
+        int numBytesToRead;
         // форма Список пользователей
         Form3 List;
         // форма Добавление пользователя
@@ -35,6 +51,7 @@ namespace ZI1
             Add = new Form4();
             ChangePass = new Form5();
             Acc = new Account();
+            Acc.AccMem = new MemoryStream();
             InitializeComponent();
             All.Enabled = false;
             New.Enabled = false;
@@ -285,10 +302,94 @@ namespace ZI1
 
         private void Form1_Shown(object sender, EventArgs e)
         {
+
+
+            // создание формы для ввода парольной фразы для расшифрпования
+            Form6 passFrase = new Form6();
+            // блок с возможной генерацией исключительных ситуаций
+            try
+            {
+                if (passFrase.ShowDialog() != DialogResult.OK)
+                { throw new Exception("Работа программы невозможна!");
+                // создание объекта для криптоалгоритма
+                    rc2CSP = new RC2CryptoServiceProvider();
+                    // определение режима блочного шифрования
+                    rc2CSP.Mode = CipherMode.CBC;
+                    // декодирование парольной фразы
+                    pwd = Encoding.Unicode.GetBytes(passFrase.Edit1.Text);
+                    // создание буфера для случайной примеси
+                    randBytes = new byte[8];
+                    // выделение памяти для буфера
+                    buf = new byte[pwd.Length + randBytes.Length];
+                    // копирование в буфер парольной фразы
+                    pwd.CopyTo(buf, 0);
+                    // освобождение ресурсов формы для ввода парольной фразы
+                    passFrase.Dispose();
+                    /* если файл с учетными записями пользователей не существует 
+         (первый запуск программы) */
+                }
+            /* если файл с учетными записями существует (второй и последующие запуски
+                   программы), то он должен быть расшифрован */
+            else
+            {
+                // создание объекта для зашифрованного файла учетных записей
+                Acc.AccFile = new FileStream(Account.SECFILE, FileMode.Open);
+                // чтение случайной примеси из начала зашифрованного файла
+                Acc.AccFile.Read(randBytes, 0, 8);
+                // создание объекта для вывода ключа из парольной фразы
+                pdb = new PasswordDeriveBytes(pwd, randBytes);
+                // восстановление начального вектора из файла
+                IV = new byte[rc2CSP.BlockSize / 8];
+                Acc.AccFile.Read(IV, 0, rc2CSP.BlockSize / 8);
+                rc2CSP.IV = IV;
+                // вывод ключа расшифрования
+                rc2CSP.Key = pdb.CryptDeriveKey("RC2", "MD5", rc2CSP.KeySize,
+     rc2CSP.IV);
+                // создание объекта расшифрования
+                ICryptoTransform decryptor = rc2CSP.CreateDecryptor(rc2CSP.Key,
+     rc2CSP.IV);
+                // создание объекта для потока расшифрования
+                CrStream = new CryptoStream(Acc.AccFile, decryptor, CryptoStreamMode.Read);
+                // выделение памяти для буфера ввода-вывода
+                bytes = new byte[Acc.AccFile.Length - (8 + (rc2CSP.BlockSize / 8))];
+                // задание количества непрочитанных байт
+                numBytesToRead = (int)(Acc.AccFile.Length) - (8 + (rc2CSP.BlockSize / 8));
+                // ввод данных из исходного файла
+                int n = CrStream.Read(bytes, 0, numBytesToRead);
+                // сохранение фактического количества расшифрованных байт
+                numBytesToRead = n;
+                // запись в расшифрованный поток в памяти
+                Acc.AccMem.Write(bytes, 0, numBytesToRead);
+                // очистка памяти с объектом криптоалгоритма
+                rc2CSP.Clear();
+                // закрытие криптографического потока
+                CrStream.Close();
+                // закрытие зашифрованного файла
+                Acc.AccFile.Close();
+                // чтение первой учетной записи (администратора)
+                Acc.AccMem.Seek(0, SeekOrigin.Begin);
+                Acc.ReadAccount();
+                // если имя первой учетной записи не совпадает с ADMIN
+                if (Encoding.Unicode.GetString(Acc.UserAcc.UserName, 0, 10)
+    != "ADMIN")
+                    throw new Exception("Неверный ключ расшифрования!");
+            }
+            }
+            // обработка исключения
+            catch (Exception ex)
+            {
+                // вывод сообщения об ошибке
+                MessageBox.Show(ex.Message, "Ошибка", MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+                // завершение работы программы
+                Application.Exit();
+            }
+
             /* если файл с учетными записями пользователей не существует 
    (первый запуск программы) */
             if (!File.Exists(Account.SECFILE))
             {
+              
                 // создание нового файла
                 Acc.AccFile = new FileStream(Account.SECFILE, FileMode.Create);
                 // подготовка учетной записи администратора
@@ -318,6 +419,58 @@ namespace ZI1
             All.Enabled = false;
             New.Enabled = false;
             Change.Enabled = false;
+        }
+
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            // если форму закрывает пользователь (нормальное завершение работы программы)
+            if (e.CloseReason != CloseReason.ApplicationExitCall)
+            {
+                // создание объекта для генерации случайной примеси
+                RNGCryptoServiceProvider rand = new RNGCryptoServiceProvider();
+                // создание буфера для случайной примеси
+                randBytes = new byte[8];
+                // получение примеси для секретного ключа
+                rand.GetBytes(randBytes);
+                // создание объекта для вывода ключа из парольной фразы
+                pdb = new PasswordDeriveBytes(pwd, randBytes);
+                // копирование в буфер примеси
+                randBytes.CopyTo(buf, pwd.Length);
+                // генерация начального вектора для блочного шифрования
+                rc2CSP.GenerateIV();
+                // вывод ключа шифрования из парольной фразы и примеси
+                rc2CSP.Key = pdb.CryptDeriveKey("RC2", "MD5", rc2CSP.KeySize, rc2CSP.IV);
+                // создание объекта шифрования
+                ICryptoTransform encryptor = rc2CSP.CreateEncryptor(rc2CSP.Key, rc2CSP.IV);
+                // создание нового файла
+                Acc.AccFile = new FileStream(Account.SECFILE, FileMode.Create);
+                // запись в начало зашифрованного файла случайной примеси
+                Acc.AccFile.Write(randBytes, 0, 8);
+                // сохранение в файле начального вектора
+                Acc.AccFile.Write(rc2CSP.IV, 0, rc2CSP.BlockSize / 8);
+                // создание объекта для потока шифрования
+                CrStream = new CryptoStream(Acc.AccFile, encryptor, CryptoStreamMode.Write);
+                // смещение к началу потока в памяти
+                Acc.AccMem.Seek(0, SeekOrigin.Begin);
+                // выделение памяти для буфера ввода-вывода
+                bytes = new byte[Acc.AccMem.Length];
+                // задание количества непрочитанных байт
+                numBytesToRead = (int)Acc.AccMem.Length;
+                // получение данных из потока в памяти
+                int n = Acc.AccMem.Read(bytes, 0, numBytesToRead);
+                // сохранение фактического количества прочитанных байт
+                numBytesToRead = n;
+                // запись в зашифрованный файл
+                CrStream.Write(bytes, 0, numBytesToRead);
+                // очистка памяти с конфиденциальными данными
+                rc2CSP.Clear();
+                // закрытие потока шифрования
+                CrStream.Close();
+                // закрытие файла и потока в памяти
+                Acc.AccMem.Close();
+                Acc.AccFile.Close();
+            }
+
         }
     }
 }

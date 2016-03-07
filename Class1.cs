@@ -18,6 +18,7 @@ public const int MAXNAME = 20;
     // структурный тип для хранения учетной записи
     public struct AccountType
     {
+        public MemoryStream AccMem;// буфер для чтения и записи в файл
         public byte[] UserName; // имя
         public byte[] UserPass; // пароль
         public int PassLen; // длина пароля
@@ -30,7 +31,8 @@ public const int MAXNAME = 20;
     public AccountType UserAcc;
     // поток для чтения и записи в файл с учетными записями
     public FileStream AccFile;
-    // номер текущей учетной записи
+    public MemoryStream AccMem;
+        // номер текущей учетной записи
     public int RecCount;
     // буфер для учетной записи
     public byte[] buf;
@@ -69,26 +71,26 @@ public const int MAXNAME = 20;
         // преобразование и запись признака ограничений на пароль
         BitConverter.GetBytes(UserAcc.Restrict).CopyTo(buf, pos);
         pos += sizeof(bool);
-        // запись буфера с учетной записью в файл
-        AccFile.Write(buf, 0, pos);
+            // запись буфера с учетной записью в файл
+       AccMem.Write(buf, 0, pos);
     }
     // метод для чтение учетной записи из файла
     public void ReadAccount()
     {
-        // чтение имени пользователя
-        AccFile.Read(UserAcc.UserName, 0, MAXNAME * 2);
-        // чтение пароля
-        AccFile.Read(UserAcc.UserPass, 0, MAXPASS * 2);
+            // чтение имени пользователя
+            AccMem.Read(UserAcc.UserName, 0, MAXNAME * 2);
+            // чтение пароля
+            AccMem.Read(UserAcc.UserPass, 0, MAXPASS * 2);
         // выделение памыти под временный буфер
         byte[] tmp = new byte[sizeof(int)];
         // чтение и преобразование длины пароля
-        AccFile.Read(tmp, 0, sizeof(int));
+        AccMem.Read(tmp, 0, sizeof(int));
         UserAcc.PassLen = BitConverter.ToInt32(tmp, 0);
         // чтение и преобразование признака юлокировки учетной записи
-        AccFile.Read(tmp, 0, sizeof(bool));
+        AccMem.Read(tmp, 0, sizeof(bool));
         UserAcc.Block = BitConverter.ToBoolean(tmp, 0);
         // чтение и преобразование признака ограничений на пароль
-        AccFile.Read(tmp, 0, sizeof(bool));
+        AccMem.Read(tmp, 0, sizeof(bool));
         UserAcc.Restrict = BitConverter.ToBoolean(tmp, 0);
     }
 
