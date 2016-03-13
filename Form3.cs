@@ -36,7 +36,7 @@ namespace ZI1
             checkBox2.Checked = Acc.UserAcc.Restrict;
             // если следующей учетной записи нет, то блокирование кнопки «Следующий» в окне 
             //просмотра (редактирования) учетных записей
-            if (Acc.AccFile.Length == Acc.RecCount * Acc.AccLen)
+            if (Acc.AccMem.Length == Acc.RecCount * Acc.AccLen)
                 Next.Enabled = false;
 
         }
@@ -46,14 +46,14 @@ namespace ZI1
             // получение ссылки на объект учетной записи главной формы
             Account Acc = ((Form1)(Application.OpenForms[0])).Acc;
             // смещение к началу редактируемой учетной записи в файле
-            Acc.AccFile.Seek((Acc.RecCount - 1) * Acc.AccLen, SeekOrigin.Begin);
+            Acc.AccMem.Seek((Acc.RecCount - 1) * Acc.AccLen, SeekOrigin.Begin);
             // получение значений полей измененной учетной записи
             Acc.UserAcc.Block = checkBox1.Checked;
             Acc.UserAcc.Restrict = checkBox2.Checked;
             // запись в файл
             Acc.WriteAccount();
             // смещение для чтения следующей учетной записи
-            Acc.AccFile.Seek(Acc.RecCount * Acc.AccLen, SeekOrigin.Begin);
+            Acc.AccMem.Seek(Acc.RecCount * Acc.AccLen, SeekOrigin.Begin);
 
         }
     }

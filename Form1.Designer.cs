@@ -37,6 +37,7 @@
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.выходToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.relogToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.KeyKey = new System.Windows.Forms.ToolStripMenuItem();
             this.справкаToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.оПрограммеToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.button1 = new System.Windows.Forms.Button();
@@ -64,7 +65,8 @@
             this.All,
             this.toolStripSeparator1,
             this.выходToolStripMenuItem,
-            this.relogToolStripMenuItem});
+            this.relogToolStripMenuItem,
+            this.KeyKey});
             this.пользователиToolStripMenuItem.Name = "пользователиToolStripMenuItem";
             this.пользователиToolStripMenuItem.Size = new System.Drawing.Size(97, 20);
             this.пользователиToolStripMenuItem.Text = "Пользователи";
@@ -109,6 +111,13 @@
             this.relogToolStripMenuItem.Text = "logout";
             this.relogToolStripMenuItem.Click += new System.EventHandler(this.relogToolStripMenuItem_Click);
             // 
+            // KeyKey
+            // 
+            this.KeyKey.Name = "KeyKey";
+            this.KeyKey.Size = new System.Drawing.Size(190, 22);
+            this.KeyKey.Text = "Смена ключа.";
+            this.KeyKey.Click += new System.EventHandler(this.KeyKey_Click);
+            // 
             // справкаToolStripMenuItem
             // 
             this.справкаToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -144,7 +153,7 @@
             this.Controls.Add(this.menuStrip1);
             this.MainMenuStrip = this.menuStrip1;
             this.Name = "Form1";
-            this.Text = "Лабараторная работа #1 Сафоненко";
+            this.Text = "Лабараторная работа #2 Сафоненко";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
             this.Shown += new System.EventHandler(this.Form1_Shown);
             this.menuStrip1.ResumeLayout(false);
@@ -169,6 +178,7 @@
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
         private System.Windows.Forms.BindingSource bindingSource1;
         private System.Windows.Forms.ToolStripMenuItem relogToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem KeyKey;
     }
 }
 

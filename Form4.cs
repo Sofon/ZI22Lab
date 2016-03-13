@@ -33,10 +33,10 @@ namespace ZI1
                     // получение ссылки на объект учетной записи главной формы
                     Account Acc = ((Form1)(Application.OpenForms[0])).Acc;
                     // смещение к началу файла с учетными записями 
-                    Acc.AccFile.Seek(0, SeekOrigin.Begin);
+                    Acc.AccMem.Seek(0, SeekOrigin.Begin);
                     // чтение учетных записей из файла для проверки 
                     // уникальности введенного имени
-                    while (Acc.AccFile.Position < Acc.AccFile.Length)
+                    while (Acc.AccMem.Position < Acc.AccMem.Length)
                     {
                         Acc.ReadAccount();
                         // если учетная запись с введенным именем уже существует,

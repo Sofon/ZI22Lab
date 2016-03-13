@@ -9,12 +9,13 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Security.Cryptography;
-
+using Org.Mentalis.Security.Cryptography;
 namespace ZI1
 {
 
     public partial class Form1 : Form
-    {   
+    {
+        Form6 passFrase = new Form6();
         // форма Вход в программу
         Form2 Enter;
         RC2CryptoServiceProvider rc2CSP;
@@ -54,6 +55,7 @@ namespace ZI1
             Acc.AccMem = new MemoryStream();
             InitializeComponent();
             All.Enabled = false;
+            KeyKey.Enabled = false;
             New.Enabled = false;
             relogToolStripMenuItem.Enabled = false;
             Change.Enabled = false;
@@ -76,14 +78,14 @@ namespace ZI1
                 if (Enter.ShowDialog() == DialogResult.OK)
                 {
                     // если повторная попытка входа, то закрытие файла учетных записей
-                    if (Acc.AccFile != null) Acc.AccFile.Close();
+                    if (Acc.AccMem != null) Acc.AccMem.Seek(0, SeekOrigin.Begin);
                     // открытие файла для чтения и записи
-                    Acc.AccFile = new FileStream(Account.SECFILE, FileMode.Open);
+                    Acc.AccMem.Seek(0, SeekOrigin.Begin);
                     // сброс номера текущей учетной записи
                     Acc.RecCount = 0;
                     // чтение учетных записей и сравнение имен из них с введенным
                     // пользователем именем 
-                    while (Acc.AccFile.Position < Acc.AccFile.Length)
+                    while (Acc.AccMem.Position < Acc.AccMem.Length)
                     {
                         // чтение очередной учетной записи
                         Acc.ReadAccount();
@@ -111,7 +113,7 @@ namespace ZI1
                         if (ChangePass.ShowDialog() == DialogResult.OK)
                         {
                             // смещение к началу текущей учетной записи в файле 
-                            Acc.AccFile.Seek((Acc.RecCount - 1) * Acc.AccLen,
+                            Acc.AccMem.Seek((Acc.RecCount - 1) * Acc.AccLen,
      SeekOrigin.Begin);
                             // добавление введенного пароля и его длины в учетную
                             // запись
@@ -163,8 +165,9 @@ namespace ZI1
                         // «Новый пользователь» 
                         All.Enabled = true;
                         New.Enabled = true;
+                        KeyKey.Enabled = true;
                         // закрытие файла с учетными записями
-                        Acc.AccFile.Close();
+                        Acc.AccMem.Seek(0, SeekOrigin.Begin);
                     }
                     else
                     {
@@ -208,7 +211,7 @@ namespace ZI1
             if (All.Enabled)
             {
                 // открытие файла с учетными записями для чтения и записи
-                Acc.AccFile = new FileStream(Account.SECFILE, FileMode.Open);
+                Acc.AccMem.Seek(0, SeekOrigin.Begin);
                 // сброс номера текущей учетной записи
                 Acc.RecCount = 0;
                 // чтение учетной записи администратора (первой учетной записи)
@@ -223,7 +226,7 @@ namespace ZI1
 
                 }
                 // смещение к началу текущей учетной записи в файле 
-                Acc.AccFile.Seek((Acc.RecCount - 1) * Acc.AccLen, SeekOrigin.Begin);
+            Acc.AccMem.Seek((Acc.RecCount - 1) * Acc.AccLen, SeekOrigin.Begin);
                 // помещение в учетную запись нового пароля и его длины
                 Encoding.Unicode.GetBytes(ChangePass.Edit1.Text).
           CopyTo(Acc.UserAcc.UserPass, 0);
@@ -233,20 +236,18 @@ namespace ZI1
             }
             // если программа в режиме администратора, то закрытие файла
             if (All.Enabled)
-                Acc.AccFile.Close();
+                Acc.AccMem.Seek(0, SeekOrigin.Begin);
 
         }
 
         private void New_Click(object sender, EventArgs e)
         {
-            // открытие файла учетных записей
-            Acc.AccFile = new FileStream(Account.SECFILE, FileMode.Open);
 
             // отображение формы для добавления пользователя
             if (Add.ShowDialog() == DialogResult.OK)
             {
                 // смещение в конец файла
-                Acc.AccFile.Seek(0, SeekOrigin.End);
+                Acc.AccMem.Seek(0, SeekOrigin.End);
                 // сохранение в учетной записи введенного имени пользователя
                 Encoding.Unicode.GetBytes(Add.UserName.Text).
                   CopyTo(Acc.UserAcc.UserName, 0);
@@ -259,7 +260,7 @@ namespace ZI1
                 Acc.WriteAccount();
             }
             // закрытие файла
-            Acc.AccFile.Close();
+            Acc.AccMem.Seek(0, SeekOrigin.Begin);
             // очистка редактора для ввода следующего имени пользователя
             Add.UserName.Clear();
 
@@ -269,7 +270,7 @@ namespace ZI1
         private void All_Click(object sender, EventArgs e)
         {
             // открытие файла с учетными записями для чтения и записи
-            Acc.AccFile = new FileStream(Account.SECFILE, FileMode.Open);
+            Acc.AccMem.Seek(0, SeekOrigin.Begin);
             // сброс номера текущей учетной записи
             Acc.RecCount = 0;
             // чтение первой учетной записи
@@ -284,11 +285,11 @@ namespace ZI1
             List.checkBox2.Checked = Acc.UserAcc.Restrict;
             // если следующей учетной записи нет, то блокирование кнопки «Следующий» в окне 
             //просмотра (редактирования) учетных записей
-            if (Acc.AccFile.Length == Acc.RecCount * Acc.AccLen)
+            if (Acc.AccMem.Length == Acc.RecCount * Acc.AccLen)
             {
                 List.Next.Enabled = false;
                 // смещение к началу первой учетной записи
-                Acc.AccFile.Seek(0, SeekOrigin.Begin);
+                Acc.AccMem.Seek(0, SeekOrigin.Begin);
             }
             // снятие блокировки с кнопки Следующий
             else
@@ -296,98 +297,38 @@ namespace ZI1
             // отображение окна просмотра (редактирования) учетных записей
             List.ShowDialog();
             // закрытие файла
-            Acc.AccFile.Close();
+            Acc.AccMem.Seek(0, SeekOrigin.Begin);
 
         }
 
         private void Form1_Shown(object sender, EventArgs e)
         {
 
-
             // создание формы для ввода парольной фразы для расшифрпования
-            Form6 passFrase = new Form6();
+
+
             // блок с возможной генерацией исключительных ситуаций
             try
             {
                 if (passFrase.ShowDialog() != DialogResult.OK)
-                { throw new Exception("Работа программы невозможна!");
+                    throw new Exception("Работа программы невозможна!");
                 // создание объекта для криптоалгоритма
-                    rc2CSP = new RC2CryptoServiceProvider();
-                    // определение режима блочного шифрования
-                    rc2CSP.Mode = CipherMode.CBC;
-                    // декодирование парольной фразы
-                    pwd = Encoding.Unicode.GetBytes(passFrase.Edit1.Text);
-                    // создание буфера для случайной примеси
-                    randBytes = new byte[8];
-                    // выделение памяти для буфера
-                    buf = new byte[pwd.Length + randBytes.Length];
-                    // копирование в буфер парольной фразы
-                    pwd.CopyTo(buf, 0);
-                    // освобождение ресурсов формы для ввода парольной фразы
-                    passFrase.Dispose();
-                    /* если файл с учетными записями пользователей не существует 
-         (первый запуск программы) */
-                }
-            /* если файл с учетными записями существует (второй и последующие запуски
-                   программы), то он должен быть расшифрован */
-            else
-            {
-                // создание объекта для зашифрованного файла учетных записей
-                Acc.AccFile = new FileStream(Account.SECFILE, FileMode.Open);
-                // чтение случайной примеси из начала зашифрованного файла
-                Acc.AccFile.Read(randBytes, 0, 8);
-                // создание объекта для вывода ключа из парольной фразы
-                pdb = new PasswordDeriveBytes(pwd, randBytes);
-                // восстановление начального вектора из файла
-                IV = new byte[rc2CSP.BlockSize / 8];
-                Acc.AccFile.Read(IV, 0, rc2CSP.BlockSize / 8);
-                rc2CSP.IV = IV;
-                // вывод ключа расшифрования
-                rc2CSP.Key = pdb.CryptDeriveKey("RC2", "MD5", rc2CSP.KeySize,
-     rc2CSP.IV);
-                // создание объекта расшифрования
-                ICryptoTransform decryptor = rc2CSP.CreateDecryptor(rc2CSP.Key,
-     rc2CSP.IV);
-                // создание объекта для потока расшифрования
-                CrStream = new CryptoStream(Acc.AccFile, decryptor, CryptoStreamMode.Read);
-                // выделение памяти для буфера ввода-вывода
-                bytes = new byte[Acc.AccFile.Length - (8 + (rc2CSP.BlockSize / 8))];
-                // задание количества непрочитанных байт
-                numBytesToRead = (int)(Acc.AccFile.Length) - (8 + (rc2CSP.BlockSize / 8));
-                // ввод данных из исходного файла
-                int n = CrStream.Read(bytes, 0, numBytesToRead);
-                // сохранение фактического количества расшифрованных байт
-                numBytesToRead = n;
-                // запись в расшифрованный поток в памяти
-                Acc.AccMem.Write(bytes, 0, numBytesToRead);
-                // очистка памяти с объектом криптоалгоритма
-                rc2CSP.Clear();
-                // закрытие криптографического потока
-                CrStream.Close();
-                // закрытие зашифрованного файла
-                Acc.AccFile.Close();
-                // чтение первой учетной записи (администратора)
-                Acc.AccMem.Seek(0, SeekOrigin.Begin);
-                Acc.ReadAccount();
-                // если имя первой учетной записи не совпадает с ADMIN
-                if (Encoding.Unicode.GetString(Acc.UserAcc.UserName, 0, 10)
-    != "ADMIN")
-                    throw new Exception("Неверный ключ расшифрования!");
-            }
-            }
-            // обработка исключения
-            catch (Exception ex)
-            {
-                // вывод сообщения об ошибке
-                MessageBox.Show(ex.Message, "Ошибка", MessageBoxButtons.OK,
-                    MessageBoxIcon.Error);
-                // завершение работы программы
-                Application.Exit();
-            }
-
-            /* если файл с учетными записями пользователей не существует 
-   (первый запуск программы) */
-            if (!File.Exists(Account.SECFILE))
+                rc2CSP = new RC2CryptoServiceProvider();
+                // определение режима блочного шифрования
+                rc2CSP.Mode = CipherMode.CFB;
+                
+                // декодирование парольной фразы
+                pwd = Encoding.Unicode.GetBytes(passFrase.Edit1.Text);
+                
+                // создание буфера для случайной примеси
+                randBytes = new byte[8];
+                // выделение памяти для буфера
+                buf = new byte[pwd.Length + randBytes.Length];
+                // копирование в буфер парольной фразы
+                pwd.CopyTo(buf, 0);
+                // освобождение ресурсов формы для ввода парольной фразы
+                //passFrase.Dispose();
+                  if (!File.Exists(Account.SECFILE))
             {
               
                 // создание нового файла
@@ -405,6 +346,68 @@ namespace ZI1
                 // сброс счетчика попыток входа в программу
                 EnterCount = 0;
             }
+    
+else
+      {
+                    // создание объекта для зашифрованного файла учетных записей
+                    Acc.AccFile = new FileStream(Account.SECFILE, FileMode.Open);
+                    // чтение случайной примеси из начала зашифрованного файла
+                    Acc.AccFile.Read(randBytes, 0, 8);
+                    // создание объекта для вывода ключа из парольной фразы
+                    pdb = new PasswordDeriveBytes(pwd, randBytes);
+                    // восстановление начального вектора из файла
+                    IV = new byte[rc2CSP.BlockSize / 8];
+                    Acc.AccFile.Read(IV, 0, rc2CSP.BlockSize / 8);
+                    rc2CSP.IV = IV;
+                    // вывод ключа расшифрования
+                    rc2CSP.Key = pdb.CryptDeriveKey("RC2", "MD4", rc2CSP.KeySize,
+         rc2CSP.IV);
+                    // создание объекта расшифрования
+                    ICryptoTransform decryptor = rc2CSP.CreateDecryptor(rc2CSP.Key,
+         rc2CSP.IV);
+                    // создание объекта для потока расшифрования
+                    CrStream = new CryptoStream(Acc.AccFile, decryptor, CryptoStreamMode.Read);
+                    // выделение памяти для буфера ввода-вывода
+                    int numerik;
+                    numerik = (int)(Acc.AccFile.Length - (8 + (rc2CSP.BlockSize / 8)));
+                    bytes = new byte[numerik];                
+                    // задание количества непрочитанных байт
+                    numBytesToRead = (int)((Acc.AccFile.Length) - (8 + (rc2CSP.BlockSize/8)));
+                    // ввод данных из исходного файла
+                    int n = CrStream.Read(bytes, 0, numBytesToRead);
+                    // сохранение фактического количества расшифрованных байт
+                    numBytesToRead = n;
+                    // запись в расшифрованный поток в памяти
+                    Acc.AccMem.Write(bytes, 0, numBytesToRead);
+                    // очистка памяти с объектом криптоалгоритма
+                    rc2CSP.Clear();
+                    // закрытие криптографического потока
+                    CrStream.Close();
+                    // закрытие зашифрованного файла
+                    Acc.AccFile.Close();
+                    // чтение первой учетной записи (администратора)
+                    Acc.AccMem.Seek(0, SeekOrigin.Begin);
+                    Acc.ReadAccount();
+                    // если имя первой учетной записи не совпадает с ADMIN
+                    if (Encoding.Unicode.GetString(Acc.UserAcc.UserName, 0, 10)
+        != "ADMIN")
+                        throw new Exception("Неверный ключ расшифрования!");
+                }
+            }
+            // обработка исключения
+            catch (Exception ex)
+            {
+                // вывод сообщения об ошибке
+                MessageBox.Show(ex.Message, "Ошибка", MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+                // завершение работы программы
+                Application.Exit();
+            }
+
+
+            /* если файл с учетными записями пользователей не существует 
+   (первый запуск программы) */
+          
 
         }
 
@@ -426,6 +429,7 @@ namespace ZI1
             // если форму закрывает пользователь (нормальное завершение работы программы)
             if (e.CloseReason != CloseReason.ApplicationExitCall)
             {
+                pwd = Encoding.Unicode.GetBytes(passFrase.Edit1.Text);
                 // создание объекта для генерации случайной примеси
                 RNGCryptoServiceProvider rand = new RNGCryptoServiceProvider();
                 // создание буфера для случайной примеси
@@ -439,7 +443,7 @@ namespace ZI1
                 // генерация начального вектора для блочного шифрования
                 rc2CSP.GenerateIV();
                 // вывод ключа шифрования из парольной фразы и примеси
-                rc2CSP.Key = pdb.CryptDeriveKey("RC2", "MD5", rc2CSP.KeySize, rc2CSP.IV);
+                rc2CSP.Key = pdb.CryptDeriveKey("RC2", "MD4", rc2CSP.KeySize, rc2CSP.IV);
                 // создание объекта шифрования
                 ICryptoTransform encryptor = rc2CSP.CreateEncryptor(rc2CSP.Key, rc2CSP.IV);
                 // создание нового файла
@@ -471,6 +475,12 @@ namespace ZI1
                 Acc.AccFile.Close();
             }
 
+        }
+
+        private void KeyKey_Click(object sender, EventArgs e)
+        {
+
+            passFrase.ShowDialog();
         }
     }
 }

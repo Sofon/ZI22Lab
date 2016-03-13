@@ -34,8 +34,10 @@ public const int MAXNAME = 20;
     public MemoryStream AccMem;
         // номер текущей учетной записи
     public int RecCount;
-    // буфер для учетной записи
-    public byte[] buf;
+        // буфер для учетной записи
+        //public byte[] buf;
+        public byte[] buf;
+
     // текущая длина буфера для учетной записи
     public int pos;
     // длина учетной записи
