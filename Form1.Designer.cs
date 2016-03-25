@@ -108,14 +108,14 @@
             // 
             this.relogToolStripMenuItem.Name = "relogToolStripMenuItem";
             this.relogToolStripMenuItem.Size = new System.Drawing.Size(190, 22);
-            this.relogToolStripMenuItem.Text = "logout";
+            this.relogToolStripMenuItem.Text = "Завершение сеанса";
             this.relogToolStripMenuItem.Click += new System.EventHandler(this.relogToolStripMenuItem_Click);
             // 
             // KeyKey
             // 
             this.KeyKey.Name = "KeyKey";
             this.KeyKey.Size = new System.Drawing.Size(190, 22);
-            this.KeyKey.Text = "Смена ключа.";
+            this.KeyKey.Text = "Смена ключа";
             this.KeyKey.Click += new System.EventHandler(this.KeyKey_Click);
             // 
             // справкаToolStripMenuItem
@@ -153,8 +153,9 @@
             this.Controls.Add(this.menuStrip1);
             this.MainMenuStrip = this.menuStrip1;
             this.Name = "Form1";
-            this.Text = "Лабараторная работа #2 Сафоненко";
+            this.Text = "Лабараторная работа #2 Соколов";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
+            this.Load += new System.EventHandler(this.Form1_Load);
             this.Shown += new System.EventHandler(this.Form1_Shown);
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();

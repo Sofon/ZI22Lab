@@ -600,4 +600,12 @@
         cJWw3xX9u6JfoPW7on9X9Ku1flf074p+tdbviv5d0a/S+r//+/8BPTxUq6Ub7iwAAAAASUVORK5CYII=
 </value>
   </data>
+  <data name="textBoxDescription.Text" xml:space="preserve">
+    <value>Выполнена на языке C#
+Ограничения:
+Наличие латинских букв, символов кириллицы, цифр и знаков арифметических операций.
+Шифрование: Блочное.
+Режим шифрования : Обратная связь по шифротексту. 
+Добавление к ключу случайное значение:нет                     Алгаритм хеширования: SHA</value>
+  </data>
 </root>

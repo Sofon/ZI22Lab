@@ -173,6 +173,7 @@ namespace ZI1
                     {
                         All.Enabled = false;
                         New.Enabled = false;
+                        KeyKey.Enabled = false;
                         Change.Enabled = false;
                     }
                     // снятие блокировки с команды меню «Смена пароля» 
@@ -316,12 +317,13 @@ namespace ZI1
                 rc2CSP = new RC2CryptoServiceProvider();
                 // определение режима блочного шифрования
                 rc2CSP.Mode = CipherMode.CFB;
-                
                 // декодирование парольной фразы
                 pwd = Encoding.Unicode.GetBytes(passFrase.Edit1.Text);
                 
                 // создание буфера для случайной примеси
                 randBytes = new byte[8];
+                randBytes[1] = 1;
+                randBytes[5] = 1;
                 // выделение памяти для буфера
                 buf = new byte[pwd.Length + randBytes.Length];
                 // копирование в буфер парольной фразы
@@ -351,6 +353,9 @@ else
       {
                     // создание объекта для зашифрованного файла учетных записей
                     Acc.AccFile = new FileStream(Account.SECFILE, FileMode.Open);
+                    randBytes = new byte[8];
+                    randBytes[1] = 1;
+                    randBytes[5] = 1;
                     // чтение случайной примеси из начала зашифрованного файла
                     Acc.AccFile.Read(randBytes, 0, 8);
                     // создание объекта для вывода ключа из парольной фразы
@@ -360,7 +365,7 @@ else
                     Acc.AccFile.Read(IV, 0, rc2CSP.BlockSize / 8);
                     rc2CSP.IV = IV;
                     // вывод ключа расшифрования
-                    rc2CSP.Key = pdb.CryptDeriveKey("RC2", "MD4", rc2CSP.KeySize,
+                    rc2CSP.Key = pdb.CryptDeriveKey("RC2", "SHA", rc2CSP.KeySize,
          rc2CSP.IV);
                     // создание объекта расшифрования
                     ICryptoTransform decryptor = rc2CSP.CreateDecryptor(rc2CSP.Key,
@@ -421,6 +426,7 @@ else
             button1.Visible = true;
             All.Enabled = false;
             New.Enabled = false;
+            KeyKey.Enabled = false;
             Change.Enabled = false;
         }
 
@@ -430,12 +436,15 @@ else
             if (e.CloseReason != CloseReason.ApplicationExitCall)
             {
                 pwd = Encoding.Unicode.GetBytes(passFrase.Edit1.Text);
+                buf = new byte[pwd.Length + randBytes.Length];
                 // создание объекта для генерации случайной примеси
                 RNGCryptoServiceProvider rand = new RNGCryptoServiceProvider();
                 // создание буфера для случайной примеси
                 randBytes = new byte[8];
+                randBytes[1] = 1;
+                randBytes[5] = 1;
                 // получение примеси для секретного ключа
-                rand.GetBytes(randBytes);
+                //rand.GetBytes(randBytes);
                 // создание объекта для вывода ключа из парольной фразы
                 pdb = new PasswordDeriveBytes(pwd, randBytes);
                 // копирование в буфер примеси
@@ -443,7 +452,7 @@ else
                 // генерация начального вектора для блочного шифрования
                 rc2CSP.GenerateIV();
                 // вывод ключа шифрования из парольной фразы и примеси
-                rc2CSP.Key = pdb.CryptDeriveKey("RC2", "MD4", rc2CSP.KeySize, rc2CSP.IV);
+                rc2CSP.Key = pdb.CryptDeriveKey("RC2", "SHA", rc2CSP.KeySize, rc2CSP.IV);
                 // создание объекта шифрования
                 ICryptoTransform encryptor = rc2CSP.CreateEncryptor(rc2CSP.Key, rc2CSP.IV);
                 // создание нового файла
@@ -479,8 +488,13 @@ else
 
         private void KeyKey_Click(object sender, EventArgs e)
         {
-
+            passFrase.label1.Text = "Новая парольная фраза";
             passFrase.ShowDialog();
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+
         }
     }
 }

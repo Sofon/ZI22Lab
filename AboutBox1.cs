@@ -13,14 +13,14 @@ namespace ZI1
     {
         public AboutBox1()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(AboutBox1));
             InitializeComponent();
             this.Text = String.Format("О программе {0}", AssemblyTitle);
             this.labelProductName.Text = "Лабораторная работа №1";
-            this.labelVersion.Text = "А-07-12";
-            this.labelCopyright.Text = "Сафоненко Д.П";
-            this.labelCompanyName.Text = "Вариант 11";
-            this.textBoxDescription.Text = "Выполнена на языке C#\r\nОграничения:\r\nНаличие латинских букв, символов кириллицы и" +
-    " знаков препинания.\r\n"+ "2 Лабораторная работа: "+" Блочный 	Обратная связь по шифротексту  Добавлять к ключу случайного значения,	MD4";
+            this.labelVersion.Text = "А-08-12";
+            this.labelCopyright.Text = "Соколов Д.А.";
+            this.labelCompanyName.Text = "Вариант 30";
+            this.textBoxDescription.Text = resources.GetString("textBoxDescription.Text");
         }
 
         #region Методы доступа к атрибутам сборки
@@ -102,5 +102,20 @@ namespace ZI1
             }
         }
         #endregion
+
+        private void labelCopyright_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void textBoxDescription_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void labelCompanyName_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 }

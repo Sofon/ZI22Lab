@@ -19,8 +19,8 @@ namespace ZI1
             // цифр и математических символов
             bool RUS = false, ENG = false, Zn = false;
             RUS = Regex.IsMatch(Edit1.Text, "[а-яА-ЯеЁ]");
-            ENG = Regex.IsMatch(Edit1.Text, "[A-z]");          
-            Zn = Regex.IsMatch(Edit1.Text, "[-‘.’_,:;!?()”+$]");
+            ENG = Regex.IsMatch(Edit1.Text, "[A-z]");
+            Zn = Regex.IsMatch(Edit1.Text, @"[0-9]|(-|\+|\*|\/)");
             return (RUS && ENG && Zn);
         }
 

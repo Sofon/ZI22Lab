@@ -82,16 +82,16 @@
             this.Controls.Add(this.label1);
             this.Name = "Form6";
             this.Text = "Расшифрование файла учетных записей";
+            this.Load += new System.EventHandler(this.Form6_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
 
         }
 
         #endregion
-
-        private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Button button1;
         private System.Windows.Forms.Button button2;
         public System.Windows.Forms.TextBox Edit1;
+        public System.Windows.Forms.Label label1;
     }
 }
